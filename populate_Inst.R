@@ -9,13 +9,18 @@ HUC4_list <- c(HUC4_list_1,HUC4_list_2,HUC4_list_3,HUC4_list_4)
 obsPath<-'/d3/alyssah/USGS/'
 
 #column to be renamed
-reNameVect1 <- c(`X_00065_00011_m`='ht_m',`X_00065_00011_cd`= 'ht_cd')
+reNameVect1 <- c(`X_00065_00011_m`='ht_m',    `X_00065_00011_cd`='ht_cd')
 reNameVect2 <- c(`X_00060_00011_cd`='q_cd')
-reNameVect3 <- c(`X_00055_00011_m`='vel_ms',`X_00055_00011_cd`= 'vel_cd')
+reNameVect3 <- c(`X_00055_00011_m`='vel_ms',  `X_00055_00011_cd`='vel_cd')
 
 #connect to MySQL
-source("/home/angts/populateDB/dbConnect.R")
+source("dbConnect.R")
 dbListFields(con, "data_inst")
+
+outDfColNames <- c("agency_cd", 'site_no', 'POSIXct',
+                   'ht_m',   'ht_cd',
+                   'q_cms',  'q_cd',
+                   'vel_ms', 'vel_cd')
 
 #Populate DB
 for (h in 1:length(HUC4_list)) {
@@ -23,20 +28,16 @@ for (h in 1:length(HUC4_list)) {
   if (file.exists(fileNm)) {
     load(fileNm)
     instData <- gageList$gageData
-    df1 = data.table::data.table(agency_cd=c(instData$agency_cd),site_no=c(instData$site_no),POSIXct=c(instData$POSIXct))
-    for (name in 1:length(names(instData))) { 
-      if (names(instData)[name] =="X_00065_00011_cd" ){ instData <- plyr::rename(instData, reNameVect1) 
-                                                        df1$ht_m=c(instData$ht_m)
-                                                        df1$ht_cd= c(instData$ht_cd)}
-      if (names(instData)[name] =="X_00060_00011_cd" ){ instData <- plyr::rename(instData, reNameVect2) 
-                                                        df1$q_cms=c(instData$q_cms)
-                                                        df1$q_cd=c(instData$q_cd)}
-      if (names(instData)[name] =="X_00055_00011_cd" ){ instData <- plyr::rename(instData, reNameVect3) 
-                                                       df1$vel_ms=c(instData$vel_ms)
-                                                       df1$vel_cd=c(instData$vel_cd) }}
-    df_out <- as.data.frame(df1)
+    instNames <- names(instData)
+    if (any(grepl("00065_00011", instNames))) instData <- plyr::rename(instData, reNameVect1) 
+    if (any(grepl("00060_00011", instNames))) instData <- plyr::rename(instData, reNameVect2)
+    if (any(grepl("00055_00011", instNames))) instData <- plyr::rename(instData, reNameVect3)    
+    namesToNull <- setdiff(names(instData), outDfColNames)
+    for(nn in namesToNull) instData[, nn] <- NULL
+    
     dbWriteTable(con, "data_inst", df_out, row.names=FALSE, overwrite=FALSE, append=TRUE)
   }
+  print(h)
 }
 
 
