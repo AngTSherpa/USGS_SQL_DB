@@ -34,7 +34,7 @@ for (h in 1:length(HUC4_list)) {
     if (any(grepl("00055_00011", instNames))) instData <- plyr::rename(instData, reNameVect3)    
     namesToNull <- setdiff(names(instData), outDfColNames)
     for(nn in namesToNull) instData[, nn] <- NULL
-    
+    instData$POSIXct <- as.POSIXct(instData$POSIXct, tz='UTC')
     dbWriteTable(con, "data_inst", df_out, row.names=FALSE, overwrite=FALSE, append=TRUE)
   }
   print(h)
