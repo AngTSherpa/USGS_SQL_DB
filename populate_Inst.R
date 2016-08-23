@@ -13,14 +13,13 @@ reNameVect1 <- c(`X_00065_00011_m`='ht_m',    `X_00065_00011_cd`='ht_cd')
 reNameVect2 <- c(`X_00060_00011_cd`='q_cd')
 reNameVect3 <- c(`X_00055_00011_m`='vel_ms',  `X_00055_00011_cd`='vel_cd')
 
-#connect to MySQL
-source("dbConnect.R")
-dbListFields(con, "data_inst")
-
 outDfColNames <- c("agency_cd", 'site_no', 'POSIXct',
                    'ht_m',   'ht_cd',
                    'q_cms',  'q_cd',
                    'vel_ms', 'vel_cd')
+#connect to MySQL
+source("dbConnect.R")
+dbListFields(con, "data_inst")
 
 #Populate DB
 for (h in 1:length(HUC4_list)) {
@@ -35,7 +34,7 @@ for (h in 1:length(HUC4_list)) {
     namesToNull <- setdiff(names(instData), outDfColNames)
     for(nn in namesToNull) instData[, nn] <- NULL
     instData$POSIXct <- as.POSIXct(instData$POSIXct, tz='UTC')
-    dbWriteTable(con, "data_inst", df_out, row.names=FALSE, overwrite=FALSE, append=TRUE)
+    dbWriteTable(con, "data_inst", instData, row.names=FALSE, overwrite=FALSE, append=TRUE)
   }
   print(h)
 }
@@ -53,4 +52,4 @@ dbDisconnect(con)
 #Need code to check DB
 #source("/home/angts/populateDB/checkStreamflowDB.R")
 #checkStreamflowDB(dfOut,query)
-s
+
