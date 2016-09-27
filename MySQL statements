@@ -34,7 +34,7 @@ SELECT site_no, AVG(q_cms) FROM data_daily GROUP BY site_no
 >randSite
  [1] "06336000" "05056215" "09070500" "08285500" "04250750" "10129900"
  [7] "08355050" "14219800" "06813000" "02128000"
-This query grabs data of the stations.
+This query returns data where site_no equals randSite.
 paste("SELECT * FROM data_daily where site_no in (",paste(shQuote(randSite), collapse=", "), ")", sep="")
 
 #Returns last date for all site_no in daily data.
