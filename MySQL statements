@@ -1,0 +1,58 @@
+Here are some SQL statements that will help you get started:
+
+#Read database from MySQL to R
+
+##Returns first 400 rows.
+SELECT * FROM table_name LIMIT 400
+
+##Selects row with site_no = '01010000' and lat_va = '464202’.
+SELECT * FROM metadata WHERE site_no = '01010000' AND lat_va = '464202’
+
+##Selects row with site_no = '01010000' or lat_va = '464202’.
+SELECT * FROM metadata WHERE site_no = '01010000' OR lat_va = '464202’
+
+#TO SELECT PARTICULAR COLUMNS
+
+##Selects column station_id and lat_va
+SELECT station_id, lat_va FROM metadata
+
+##selects column station_id and lat_va with rows site_no = '01010000' or lat_va ='464202’.
+SELECT station_id, lat_va FROM metadata
+WHERE site_no = '01010000' AND lat_va =´ '464202’
+
+##Get site_no and POSIXct from daily data from 2007-02-01 to 2009-05-05
+select site_no, POSIXct from data_daily where POSIXct >= "2007-02-01" and POSIXct <= "2009-05-05"
+
+#Select unique site_no from daily data.
+SELECT DISTINCT(site_no) AS site_no FROM data_daily
+
+#Returns average of q_cms for all sations in daily data.
+SELECT site_no, AVG(q_cms) FROM data_daily GROUP BY site_no
+
+#Pass R variable to MySQL statemnt
+##Say we have a variable(randSite) with stations. 
+>randSite
+ [1] "06336000" "05056215" "09070500" "08285500" "04250750" "10129900"
+ [7] "08355050" "14219800" "06813000" "02128000"
+This query grabs data of the stations.
+paste("SELECT * FROM data_daily where site_no in (",paste(shQuote(randSite), collapse=", "), ")", sep="")
+
+#Returns last date for all site_no in daily data.
+'SELECT p1.* FROM data_daily p1 INNER JOIN 
+( SELECT max(POSIXct) MaxDate, site_no FROM data_daily GROUP BY site_no) 
+p2 ON p1.site_no = p2.site_no AND p1.POSIXct = p2.MaxDate 
+order by p1.POSIXct desc'
+
+#Write database to MySQL from R
+
+##Adds a data to a table.
+INSERT INTO data_daily (column names) VALUES (values to be inserted in each column)
+NOTE: The column name and the values should be same order.
+*dbWriteTable is best way to add data.
+
+##Update vel_ms to 0.01 for every site_no = 05106000 where vel_ms ='NA'
+SET vel_ms='0.01' WHERE vel_ms='NA' AND site_no = '05106000'
+NOTE: If we don't include where clause, then all vel_ms will set to 0.01
+
+#Delete rows with NA from q_cms
+delete from data_daily where q_cms = 'NA'
